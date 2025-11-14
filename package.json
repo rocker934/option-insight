@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "scrape": "tsx scraper/cli.ts",
     "scrape:advanced": "tsx scraper/advancedCli.ts",
+    "scrape:html": "tsx scraper/scanHtmlWithSheets.ts",
     "scrape:help": "tsx scraper/advancedCli.ts --help"
   },
   "dependencies": {
