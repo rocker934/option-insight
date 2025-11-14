@@ -12,6 +12,7 @@ A comprehensive financial market analysis application built with React, TypeScri
 - Market screener
 - API integration capabilities
 - Data mapping tools
+- **Nordstrom Product Stock Scraper** - Automated tool to find and check Nordstrom product availability
 
 ## Tech Stack
 
@@ -51,9 +52,41 @@ option-insight/
 │   ├── pages/         # Page components
 │   ├── providers/     # Context providers
 │   └── lib/          # Utility functions
+├── scraper/          # Nordstrom product stock scraper
+│   ├── cli.ts        # Command-line interface
+│   ├── index.ts      # Main scraper logic
+│   ├── urlScraper.ts # URL scanning functionality
+│   ├── nordstromChecker.ts # Stock checking logic
+│   ├── types.ts      # TypeScript types
+│   ├── example.ts    # Usage examples
+│   └── README.md     # Scraper documentation
 ├── public/           # Static assets
 └── index.html        # Entry HTML file
 ```
+
+## Nordstrom Product Scraper
+
+The scraper tool automatically finds Nordstrom product links on any webpage and checks their stock status.
+
+### Quick Start
+
+```bash
+# Check products from any URL
+npm run scrape <URL>
+
+# Example with 2-second delay between requests
+npm run scrape https://example.com 2000
+```
+
+### Features
+
+- Automatically finds all Nordstrom product links on a webpage
+- Checks stock status (in stock vs. out of stock)
+- Detects "Buy Now" buttons and stock indicators
+- Provides detailed reports with product titles and URLs
+- Built-in rate limiting to respect server resources
+
+For detailed documentation, see [scraper/README.md](scraper/README.md)
 
 ## Contributing
 
