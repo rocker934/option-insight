@@ -5,7 +5,7 @@
  * in your own TypeScript/JavaScript code.
  */
 
-import { scrapeNordstromProducts, ScraperOptions } from './index';
+import { scrapeNordstromProducts, ScraperOptions } from './index.js';
 
 /**
  * Example 1: Basic scraping
@@ -204,21 +204,16 @@ async function individualFunctionsExample() {
   }
 }
 
-// Run examples
-if (require.main === module) {
-  console.log('Nordstrom Scraper - Usage Examples\n');
-  console.log('Uncomment the example you want to run:\n');
+// To run examples, uncomment the function you want to run and execute:
+// tsx scraper/example.ts
 
-  // Uncomment one of these to run:
-  // basicExample();
-  // customOptionsExample();
-  // filteringExample();
-  // multiUrlExample();
-  // notificationExample();
-  // individualFunctionsExample();
-
-  console.log('Edit scraper/example.ts and uncomment an example to run it.');
-}
+// Uncomment one of these to run:
+// basicExample();
+// customOptionsExample();
+// filteringExample();
+// multiUrlExample();
+// notificationExample();
+// individualFunctionsExample();
 
 // Export for use in other modules
 export {

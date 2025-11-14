@@ -4,7 +4,7 @@
  * Command-line interface for the Nordstrom product scraper
  */
 
-import { scrapeNordstromProducts } from './index';
+import { scrapeNordstromProducts } from './index.js';
 
 async function main() {
   const args = process.argv.slice(2);

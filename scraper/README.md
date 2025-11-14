@@ -1,11 +1,14 @@
 # Nordstrom Product Stock Scraper
 
-A TypeScript-based web scraper that automatically finds Nordstrom product links on any webpage and checks their stock availability.
+A comprehensive TypeScript-based web scraper that automatically finds Nordstrom product links and checks their stock availability. Supports multiple URLs, Google Sheets export, and local HTML file scanning.
 
 ## Features
 
 - **Automatic Link Detection**: Scans any URL for Nordstrom product links
+- **Multi-URL Support**: Scan multiple URLs from a file or command line
 - **Stock Status Checking**: Determines if products are in stock or out of stock
+- **Google Sheets Export**: Export results directly to Google Sheets
+- **Local HTML Scanning**: Scan saved HTML files (useful when sites block requests)
 - **Real-time Notifications**: Get instant updates on product availability
 - **Detailed Reporting**: Shows product titles, URLs, and stock status
 - **Rate Limiting**: Built-in delays to respect server resources
@@ -30,37 +33,67 @@ npm install
 
 ## Usage
 
-### Basic Usage
+### Quick Start - Single URL
 
 ```bash
-npm run scrape <URL>
+npm run scrape <URL> [delay_ms]
 ```
 
-### With Custom Delay
-
-Add a delay (in milliseconds) between requests to avoid rate limiting:
-
+Example:
 ```bash
-npm run scrape <URL> <delay_ms>
+npm run scrape https://example.com/products 1500
 ```
 
-### Examples
+### Advanced Usage - Multiple URLs & Google Sheets
+
+The advanced CLI supports scanning multiple URLs and exporting to Google Sheets:
 
 ```bash
-# Check products on a blog post
-npm run scrape https://example.com/best-nordstrom-products
-
-# With 2-second delay between requests
-npm run scrape https://example.com/shopping-guide 2000
-
-# Using ts-node directly
-ts-node scraper/cli.ts https://example.com 1500
+npm run scrape:advanced [OPTIONS]
 ```
 
-### Help
+#### Scan Multiple URLs from File
+
+1. Edit `scraper/urls.txt` and add your URLs (one per line)
+2. Run the scraper:
 
 ```bash
-npm run scrape --help
+npm run scrape:advanced --urls-file scraper/urls.txt
+```
+
+#### Scan Multiple URLs from Command Line
+
+```bash
+npm run scrape:advanced \
+  --url https://example.com/page1 \
+  --url https://example.com/page2 \
+  --url https://example.com/page3
+```
+
+#### Export to Google Sheets
+
+```bash
+npm run scrape:advanced \
+  --urls-file scraper/urls.txt \
+  --spreadsheet-id YOUR_SPREADSHEET_ID \
+  --credentials ./path/to/credentials.json
+```
+
+#### Advanced Options
+
+```bash
+npm run scrape:advanced \
+  --urls-file scraper/urls.txt \
+  --delay 2000 \              # Delay between product checks (ms)
+  --url-delay 5000 \          # Delay between different URLs (ms)
+  --spreadsheet-id ID \       # Google Sheets ID
+  --credentials creds.json    # Google API credentials
+```
+
+### Get Help
+
+```bash
+npm run scrape:help
 ```
 
 ## Output
@@ -150,6 +183,76 @@ interface ScraperOptions {
 }
 ```
 
+## Google Sheets Setup
+
+To export results to Google Sheets:
+
+### 1. Create a Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable the Google Sheets API for your project
+
+### 2. Create Service Account
+
+1. Go to "IAM & Admin" > "Service Accounts"
+2. Click "Create Service Account"
+3. Give it a name and click "Create"
+4. Grant it the "Editor" role
+5. Click "Done"
+
+### 3. Download Credentials
+
+1. Click on the service account you created
+2. Go to the "Keys" tab
+3. Click "Add Key" > "Create new key"
+4. Choose JSON format
+5. Download the file and save it securely (e.g., `credentials.json`)
+
+### 4. Share Your Spreadsheet
+
+1. Create or open a Google Spreadsheet
+2. Click "Share"
+3. Copy the service account email from your credentials JSON
+4. Share the spreadsheet with that email address (give Editor access)
+5. Copy the Spreadsheet ID from the URL:
+   `https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit`
+
+### 5. Use the Scraper
+
+```bash
+npm run scrape:advanced \
+  --urls-file scraper/urls.txt \
+  --spreadsheet-id YOUR_SPREADSHEET_ID \
+  --credentials ./credentials.json
+```
+
+## Working Around 403 Forbidden Errors
+
+Some websites (like Elfster) have bot protection that blocks automated requests. Here are solutions:
+
+### Option 1: Save HTML Locally
+
+If you get a 403 error:
+
+1. Open the URL in your browser
+2. Right-click and select "Save Page As" (save as HTML)
+3. Scan the local HTML file:
+
+```typescript
+import { scanHtmlFile } from './scraper/htmlFileScanner.js';
+
+const results = await scanHtmlFile('./saved-page.html');
+```
+
+### Option 2: Use Direct Product URLs
+
+If you already know the Nordstrom product URLs, create a file with just those URLs and scan them directly.
+
+### Option 3: Browser Extensions
+
+For heavily protected sites, consider using browser automation tools or extensions that can extract links for you.
+
 ## Troubleshooting
 
 ### No Products Found
@@ -157,6 +260,13 @@ interface ScraperOptions {
 - Verify the URL contains actual Nordstrom product links
 - Check if the page requires JavaScript to load content
 - Try accessing the URL in a browser to confirm it works
+
+### 403 Forbidden Errors
+
+- The website is blocking automated requests
+- Try saving the page HTML locally and scanning the file
+- Use direct Nordstrom product URLs instead
+- Increase delays or use different approaches
 
 ### Timeout Errors
 
@@ -169,6 +279,12 @@ interface ScraperOptions {
 - Increase the delay between requests
 - Reduce the number of concurrent requests
 - Wait before retrying
+
+### Google Sheets Export Fails
+
+- Verify credentials.json is valid
+- Check that the spreadsheet is shared with the service account email
+- Ensure the Google Sheets API is enabled in your project
 
 ## Legal & Ethical Considerations
 

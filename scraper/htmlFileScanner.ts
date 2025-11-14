@@ -1,32 +1,49 @@
-import { findNordstromProducts } from './urlScraper.js';
+import { promises as fs } from 'fs';
+import * as cheerio from 'cheerio';
 import { checkNordstromStock, delay } from './nordstromChecker.js';
 import { ScraperResult, ScraperOptions } from './types.js';
 
 /**
- * Main scraper function that finds and checks Nordstrom products
- * @param url - The URL to scrape for Nordstrom product links
+ * Scans a local HTML file for Nordstrom product links and checks their stock
+ * Useful when websites block automated requests
+ * @param htmlFilePath - Path to the HTML file to scan
  * @param options - Scraper configuration options
- * @returns Complete scraper results with stock status for all products
+ * @returns Scraper results
  */
-export async function scrapeNordstromProducts(
-  url: string,
+export async function scanHtmlFile(
+  htmlFilePath: string,
   options: ScraperOptions = {}
 ): Promise<ScraperResult> {
   const startTime = new Date();
   const { delay: delayMs = 1000 } = options;
 
-  console.log('\n=== Nordstrom Product Stock Scraper ===\n');
-  console.log(`Source URL: ${url}`);
+  console.log('\n=== Nordstrom Product Stock Scraper (HTML File Mode) ===\n');
+  console.log(`HTML File: ${htmlFilePath}`);
   console.log(`Started at: ${startTime.toISOString()}\n`);
 
-  // Step 1: Find all Nordstrom product links
-  console.log('Step 1: Finding Nordstrom product links...');
-  const productUrls = await findNordstromProducts(url, options);
+  // Read the HTML file
+  console.log('Reading HTML file...');
+  const html = await fs.readFile(htmlFilePath, 'utf-8');
+  const $ = cheerio.load(html);
+
+  // Find all Nordstrom product links
+  console.log('Finding Nordstrom product links...');
+  const nordstromLinks = new Set<string>();
+
+  $('a[href]').each((_, element) => {
+    const href = $(element).attr('href');
+    if (href && isNordstromProductUrl(href)) {
+      const normalizedUrl = normalizeUrl(href);
+      nordstromLinks.add(normalizedUrl);
+    }
+  });
+
+  const productUrls = Array.from(nordstromLinks);
 
   if (productUrls.length === 0) {
-    console.log('\nNo Nordstrom product links found on this page.');
+    console.log('\nNo Nordstrom product links found in this file.');
     return {
-      sourceUrl: url,
+      sourceUrl: htmlFilePath,
       totalProducts: 0,
       inStock: [],
       outOfStock: [],
@@ -35,11 +52,12 @@ export async function scrapeNordstromProducts(
     };
   }
 
-  console.log(`\nStep 2: Checking stock status for ${productUrls.length} products...\n`);
+  console.log(`Found ${productUrls.length} unique Nordstrom product links\n`);
+  console.log('Checking stock status...\n');
 
-  // Step 2: Check stock status for each product
+  // Check stock status for each product
   const results: ScraperResult = {
-    sourceUrl: url,
+    sourceUrl: htmlFilePath,
     totalProducts: productUrls.length,
     inStock: [],
     outOfStock: [],
@@ -65,7 +83,7 @@ export async function scrapeNordstromProducts(
       console.log(`  ⚠️  OUT OF STOCK: ${status.title}`);
     }
 
-    // Add delay between requests to be respectful to the server
+    // Add delay between requests
     if (i < productUrls.length - 1) {
       await delay(delayMs);
     }
@@ -78,13 +96,36 @@ export async function scrapeNordstromProducts(
 }
 
 /**
+ * Checks if a URL is a Nordstrom product URL
+ */
+function isNordstromProductUrl(url: string): boolean {
+  const nordstromPattern = /nordstrom\.com.*\/s\//i;
+  const productPattern = /nordstrom\.com.*\/product/i;
+  return nordstromPattern.test(url) || productPattern.test(url);
+}
+
+/**
+ * Normalizes a URL to ensure consistency
+ */
+function normalizeUrl(url: string): string {
+  try {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return url.startsWith('//') ? `https:${url}` : url;
+  } catch {
+    return url;
+  }
+}
+
+/**
  * Prints a formatted summary of the scraping results
  */
 function printSummary(results: ScraperResult): void {
   console.log('\n' + '='.repeat(60));
   console.log('SCRAPING SUMMARY');
   console.log('='.repeat(60));
-  console.log(`Source URL: ${results.sourceUrl}`);
+  console.log(`Source File: ${results.sourceUrl}`);
   console.log(`Total Products Found: ${results.totalProducts}`);
   console.log(`In Stock: ${results.inStock.length}`);
   console.log(`Out of Stock: ${results.outOfStock.length}`);
@@ -114,21 +155,5 @@ function printSummary(results: ScraperResult): void {
     });
   }
 
-  if (results.errors.length > 0) {
-    console.log('\n' + '-'.repeat(60));
-    console.log('ERRORS:');
-    console.log('-'.repeat(60));
-    results.errors.forEach((product, index) => {
-      console.log(`${index + 1}. ${product.url}`);
-      console.log(`   Error: ${product.message}`);
-      console.log('');
-    });
-  }
-
   console.log('='.repeat(60) + '\n');
 }
-
-// Export all functions
-export * from './types.js';
-export * from './urlScraper.js';
-export * from './nordstromChecker.js';

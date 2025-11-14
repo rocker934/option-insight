@@ -1,0 +1,10 @@
+# Nordstrom Product URLs to Scan
+# Add one URL per line
+# Lines starting with # are treated as comments
+
+# Example URL (replace with your actual URLs)
+https://www.elfster.com/shop/gift-guides/742/
+
+# Add more URLs below:
+# https://example.com/shopping-guide
+# https://example.com/nordstrom-products
